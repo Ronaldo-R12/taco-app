@@ -1,0 +1,18 @@
+{
+  "menu": [
+    {"name": "Taco de carne", "price": 3.50, "category": "tacos"},
+    {"name": "Taco de pollo", "price": 3.00, "category": "tacos"},
+    {"name": "Taco de vegetal", "price": 2.50, "category": "tacos"},
+    {"name": "Coke", "price": 1.50, "category": "drinks"},
+    {"name": "Water bottle", "price": 1.00, "category": "drinks"},
+    {"name": "Orange juice", "price": 2.00, "category": "drinks"}
+  ],
+  "inventory": [
+    {"name": "Tortillas", "quantity": 50, "low_stock_threshold": 10},
+    {"name": "Carne", "quantity": 30, "low_stock_threshold": 5},
+    {"name": "Pollo", "quantity": 20, "low_stock_threshold": 5},
+    {"name": "Coke cans", "quantity": 24, "low_stock_threshold": 6},
+    {"name": "Water bottles", "quantity": 12, "low_stock_threshold": 4},
+    {"name": "Orange juice", "quantity": 10, "low_stock_threshold": 3}
+  ]
+}
