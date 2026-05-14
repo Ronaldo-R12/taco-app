@@ -1,19 +1,23 @@
 from models import load_from_json
+from order import Order
 
 menu, inventory = load_from_json("menu.json")
 
-print("=== Menu ===")
-for item in menu:
-    print(item)
+#simulate an order 
+order = Order()
+order.add_item(menu[0], 2) #2 tacos de carne 
+order.add_item(menu[3], 1) #1 coke 
+order.add_item(menu[0], 1) #1 more taco de carne (should combine to 3)
 
-print("\n=== Inventory Status ===")
-for item in inventory:
-    print(item)
+print("=== Order ===")
+print(order)
 
-print("\n=== Low Stock Warnings ===")
-low = [i for i in inventory if i.is_low()]
-if low:
-    for item in low:
-        print(f"  Restock needed: {item.name} ({item.quantity} left)")
-else:
-    print("  All good!")
+#simulate cash payment 
+order.payment_method = "cash"
+order.cash_received = 20.0 
+print(f"\nCash received: ${order.cash_received:.2f}")
+print(f"Change due:    ${order.change_due:.2f}")
+
+#save it
+order_id = order.save()
+print(f"\nOrder #{order_id} saved to orders.json")
