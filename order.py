@@ -25,7 +25,7 @@ class Order:
         self.items: list[OrderItem] = []
         self.payment_method: str = ""
         self.cash_received: float = 0.0
-        self.created_at: str = datetime.now().isoformat()
+        self.created_at: str = datetime.now().strftime("%b %d, %Y %I:%M %p")
 
     def add_item(self, menu_item: MenuItem, quantity: int):
         for order_item in self.items:
