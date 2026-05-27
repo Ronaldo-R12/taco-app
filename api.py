@@ -1,3 +1,5 @@
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from database import get_db
@@ -7,7 +9,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 app = FastAPI()
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 class OrderRequest(BaseModel):
     items: list[dict]
     payment_method: str
@@ -79,6 +81,7 @@ def create_order(request: OrderRequest, db: Session = Depends(get_db)):
         db.add(db_item)
 
     db.commit()
+    
     db.refresh(db_order)
     return {
         "order_id": db_order.id,
@@ -87,3 +90,6 @@ def create_order(request: OrderRequest, db: Session = Depends(get_db)):
         "total": order.total,
         "change_due": order.change_due
     }
+@app.get("/")
+def read_root():
+    return FileResponse("static/index.html")
