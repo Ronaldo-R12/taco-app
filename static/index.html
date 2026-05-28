@@ -132,7 +132,12 @@
       <div class="cash-input" id="cash-input">
         <input type="number" id="cash-received" placeholder="Cash received ($)" oninput="updateChange()" />
       </div>
-      <div class="change-due" id="change-due"></div>
+      <div class="change-due" id="change-due">
+        <div id="zelle-qr" style="display:none; text-align:center; margin-bottom:10px;">
+        <p style="font-size:13px; color:#666; margin-bottom:8px;">Scan to pay with Zelle</p>
+        <img src="/static/zelle-qr.png" alt="Zelle QR Code" style="width:180px; height:180px; border-radius:12px; border:1px solid #eee;" />
+        </div>
+      </div>
 
       <button class="charge-btn" id="charge-btn" onclick="submitOrder()" disabled>Charge</button>
       <button class="clear-btn" onclick="clearOrder()">Clear Order</button>
@@ -229,6 +234,7 @@
     document.getElementById("btn-zelle").classList.toggle("selected", method === "zelle");
     document.getElementById("cash-input").style.display = method === "cash" ? "block" : "none";
     document.getElementById("change-due").style.display = "none";
+    document.getElementById("zelle-qr").style.display = method === "zelle" ? "block" : "none";
     document.getElementById("charge-btn").disabled = Object.keys(order).length === 0;
   }
 
