@@ -93,3 +93,33 @@ def create_order(request: OrderRequest, db: Session = Depends(get_db)):
 @app.get("/")
 def read_root():
     return FileResponse("static/index.html")
+
+@app.get("/orders/history")
+def get_order_history(db: Session = Depends(get_db)):
+    orders = db.query(OrderDB).order_by(OrderDB.id.desc()).all()
+    result = []
+    for o in orders:
+        items = db.query(OrderItemDB).filter(OrderItemDB.order_id == o.id).all()
+        result.append({
+            "id": o.id,
+            "created_at": o.created_at,
+            "items": [
+                {
+                    "name": i.menu_item_name,
+                    "price": i.price,
+                    "quantity": i.quantity,
+                    "line_total": i.line_total
+                }
+                for i in items
+            ],
+            "subtotal": o.subtotal,
+            "total": o.total,
+            "payment_method": o.payment_method,
+            "cash_received": o.cash_received,
+            "change_due": o.change_due
+        })
+    return result
+
+@app.get("/history")
+def read_history():
+    return FileResponse("static/history.html")
