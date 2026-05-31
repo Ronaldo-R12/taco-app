@@ -310,9 +310,7 @@ function renderMenu() {
     }
   }
   async function submitOrder() {
-    alert("Submit called. Items: " + JSON.stringify(Object.keys(order)));
-
-    const items = Object.entries(order).map(([name, { qty }]) => ({ name, quantity: qty }));
+    const items = Object.entries(order).map(([name, { qty, price }]) => ({ name, quantity: qty, price }));
     let cash = 0;
     if (paymentMethod === "cash") {
       cash = parseFloat(document.getElementById("cash-received").value) || 0;

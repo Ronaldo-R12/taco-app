@@ -44,10 +44,16 @@ def create_order(request: OrderRequest, db: Session = Depends(get_db)):
     for entry in request.items:
         menu_item = db.query(MenuItemDB).filter(MenuItemDB.name == entry["name"]).first()
         if not menu_item:
-            return {"error": f"Item '{entry['name']}' not found"}
-        from models import MenuItem
-        item = MenuItem(name=menu_item.name, price=menu_item.price, category=menu_item.category)
-        order.add_item(item, entry["quantity"])
+            if "price" in entry:
+                from models import MenuItem
+                item = MenuItem(name=entry["name"], price=entry["price"], category="custom")
+                order.add_item(item, entry["quantity"])
+            else:
+                return {"error": f"Item '{entry['name']}' not found"}
+        else:
+            from models import MenuItem
+            item = MenuItem(name=menu_item.name, price=menu_item.price, category=menu_item.category)
+            order.add_item(item, entry["quantity"])
 
     print("Order empty?", order.is_empty())
     print("Order total:", order.total)
