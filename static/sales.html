@@ -31,6 +31,8 @@
       padding: 10px 18px; text-align: center;
       position: relative;
     }
+    .summary-card .label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.06em; }
+    .summary-card .value { font-size: 20px; font-weight: 600; color: #222; margin-top: 2px; }
     .tooltip {
       display: none;
       position: absolute;
@@ -41,8 +43,6 @@
       z-index: 10;
     }
     .summary-card:hover .tooltip { display: block; }
-    .summary-card .label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.06em; }
-    .summary-card .value { font-size: 20px; font-weight: 600; color: #222; margin-top: 2px; }
 
     .container { max-width: 800px; margin: 0 auto; padding: 20px; }
 
@@ -79,23 +79,31 @@
 </header>
 
 <div class="summary-bar" id="summary-bar"></div>
-
 <div class="container" id="container"></div>
 
 <script>
   async function loadSummary() {
-    const res = await fetch("/sales/summary");
-    const items = await res.json();
+    const [summaryRes, menuRes] = await Promise.all([
+      fetch("/sales/summary"),
+      fetch("/menu")
+    ]);
+    const items = await summaryRes.json();
+    const menu = await menuRes.json();
 
     if (items.length === 0) {
       document.getElementById("container").innerHTML = `<div class="empty">No sales data yet.</div>`;
       return;
     }
 
+    const categoryMap = {};
+    menu.forEach(m => { categoryMap[m.name] = m.category; });
+
     const totalUnits = items.reduce((sum, i) => sum + i.quantity, 0);
     const totalRevenue = items.reduce((sum, i) => sum + i.revenue, 0);
     const topItem = items[0];
     const maxQty = Math.max(...items.map(i => i.quantity));
+    const foodRevenue = items.filter(i => categoryMap[i.name] === "food").reduce((sum, i) => sum + i.revenue, 0);
+    const drinksRevenue = items.filter(i => categoryMap[i.name] === "drinks").reduce((sum, i) => sum + i.revenue, 0);
 
     document.getElementById("summary-bar").innerHTML = `
       <div class="summary-card">
@@ -105,17 +113,13 @@
       <div class="summary-card">
         <div class="label">Total Revenue</div>
         <div class="value">$${totalRevenue.toFixed(2)}</div>
+        <div class="tooltip">Food: $${foodRevenue.toFixed(2)} · Drinks: $${drinksRevenue.toFixed(2)}</div>
       </div>
       <div class="summary-card">
         <div class="label">Top Item</div>
         <div class="value" style="font-size:14px;">${topItem.name}</div>
       </div>
     `;
-
-    const menuRes = await fetch("/menu");
-    const menu = await menuRes.json();
-    const categoryMap = {};
-    menu.forEach(m => { categoryMap[m.name] = m.category; });
 
     const grouped = {};
     items.forEach(item => {
