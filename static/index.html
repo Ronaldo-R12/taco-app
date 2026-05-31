@@ -120,6 +120,14 @@
   <div class="menu-panel">
     <h2>Menu</h2>
     <div id="menu-container"></div>
+    <div class="category" style="margin-top:8px;">
+      <h3>Custom Charge</h3>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <input type="text" id="custom-name" placeholder="Description (e.g. Extra Meat)" style="padding:10px 14px; border-radius:10px; border:1.5px solid #ddd; font-size:14px; flex:1; min-width:150px;" />
+        <input type="number" id="custom-price" placeholder="Price ($)" style="padding:10px 14px; border-radius:10px; border:1.5px solid #ddd; font-size:14px; width:110px;" />
+        <button onclick="addCustomItem()" style="padding:10px 16px; background:#c0392b; color:white; border:none; border-radius:10px; font-size:14px; cursor:pointer;">Add</button>
+      </div>
+    </div>
   </div>
 
   <div class="order-panel">
@@ -172,7 +180,7 @@ function renderMenu() {
 
     const birria = ["Tacos de Birria", "Quesatacos", "Vampiros", "Vaso Grande con Carne", "Vaso Chico con Carne", "Consome (no carne)", "Torta de Birria"];
     const asada = ["Tacos de Asada", "Quesatacos", "Vampiros", "Torta de Asada"];
-    const extras = ["Extra Tortillas", "Extra Tostadas"];
+    const extras = ["Extra Tortillas", "Extra Tostadas", "Extra Queso"];
 
     const getItem = (name) => menu.find(i => i.name === name);
 
@@ -208,7 +216,23 @@ function renderMenu() {
     }
     renderOrder();
   }
-
+  function addCustomItem() {
+    const name = document.getElementById("custom-name").value.trim();
+    const price = parseFloat(document.getElementById("custom-price").value);
+    if (!name || isNaN(price) || price <= 0) {
+      alert("Please enter a description and valid price.");
+      return;
+    }
+    const key = `${name} ($${price.toFixed(2)})`;
+    if (order[key]) {
+      order[key].qty += 1;
+    } else {
+      order[key] = { price, qty: 1 };
+    }
+    document.getElementById("custom-name").value = "";
+    document.getElementById("custom-price").value = "";
+    renderOrder();
+  }
   function changeQty(name, delta) {
     if (!order[name]) return;
     order[name].qty += delta;
