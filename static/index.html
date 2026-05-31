@@ -238,10 +238,11 @@ function renderMenu() {
     document.getElementById("custom-price").value = "";
     renderOrder();
   }
-  function changeQty(name, delta) {
-    if (!order[name]) return;
-    order[name].qty += delta;
-    if (order[name].qty <= 0) delete order[name];
+  function changeQtyByIndex(index, delta) {
+    const key = Object.keys(order)[index];
+    if (!key) return;
+    order[key].qty += delta;
+    if (order[key].qty <= 0) delete order[key];
     renderOrder();
   }
 
@@ -256,6 +257,25 @@ function renderMenu() {
       document.getElementById("charge-btn").disabled = true;
       return;
     }
+
+    container.innerHTML = items.map(([name, { price, qty }], index) => `
+      <div class="order-item">
+        <div>
+          <div class="order-item-name">${name}</div>
+          <div class="order-item-price">$${(price * qty).toFixed(2)}</div>
+        </div>
+        <div class="qty-controls">
+          <button class="qty-btn" onclick="changeQtyByIndex(${index}, -1)">−</button>
+          <span class="qty">${qty}</span>
+          <button class="qty-btn" onclick="changeQtyByIndex(${index}, 1)">+</button>
+        </div>
+      </div>`).join("");
+
+    const subtotal = items.reduce((sum, [, { price, qty }]) => sum + price * qty, 0);
+    document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById("total").textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById("charge-btn").disabled = paymentMethod === "";
+  }
 
     container.innerHTML = items.map(([name, { price, qty }]) => `
       <div class="order-item">
