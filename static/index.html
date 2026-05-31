@@ -167,19 +167,29 @@
     renderMenu();
   }
 
-  function renderMenu() {
+function renderMenu() {
     const container = document.getElementById("menu-container");
-    const categories = {};
-    menu.forEach(item => {
-      if (!categories[item.category]) categories[item.category] = [];
-      categories[item.category].push(item);
-    });
+
+    const birria = ["Tacos de Birria", "Quesatacos", "Vampiros", "Vaso Grande con Carne", "Vaso Chico con Carne", "Consome (no carne)", "Torta de Birria"];
+    const asada = ["Tacos de Asada", "Quesatacos", "Vampiros", "Torta de Asada"];
+    const extras = ["Extra Tortillas", "Extra Tostadas"];
+
+    const getItem = (name) => menu.find(i => i.name === name);
+
+    const sections = [
+      { label: "Birria", names: birria },
+      { label: "Asada", names: asada },
+      { label: "Extras", names: extras },
+      { label: "Drinks", names: menu.filter(i => i.category === "drinks").map(i => i.name) }
+    ];
 
     container.innerHTML = "";
-    for (const [cat, items] of Object.entries(categories)) {
+    sections.forEach(({ label, names }) => {
+      const items = names.map(getItem).filter(Boolean);
+      if (items.length === 0) return;
       const section = document.createElement("div");
       section.className = "category";
-      section.innerHTML = `<h3>${cat}</h3><div class="items-grid">${
+      section.innerHTML = `<h3>${label}</h3><div class="items-grid">${
         items.map(item => `
           <button class="menu-btn" onclick="addItem('${item.name}', ${item.price})">
             <div class="item-name">${item.name}</div>
@@ -187,7 +197,7 @@
           </button>`).join("")
       }</div>`;
       container.appendChild(section);
-    }
+    });
   }
 
   function addItem(name, price) {
