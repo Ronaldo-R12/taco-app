@@ -123,3 +123,22 @@ def get_order_history(db: Session = Depends(get_db)):
 @app.get("/history")
 def read_history():
     return FileResponse("static/history.html")
+
+@app.get("/sales/summary")
+def get_sales_summary(db: Session = Depends(get_db)):
+    items = db.query(OrderItemDB).all()
+    summary = {}
+    for item in items:
+        if item.menu_item_name not in summary:
+            summary[item.menu_item_name] = {"quantity": 0, "revenue": 0.0}
+        summary[item.menu_item_name]["quantity"] += item.quantity
+        summary[item.menu_item_name]["revenue"] += item.line_total
+
+    return [
+        {"name": name, "quantity": data["quantity"], "revenue": round(data["revenue"], 2)}
+        for name, data in sorted(summary.items(), key=lambda x: x[1]["quantity"], reverse=True)
+    ]
+
+@app.get("/sales")
+def read_sales():
+    return FileResponse("static/sales.html")

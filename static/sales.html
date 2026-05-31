@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sales Summary — Tacos El Takito</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #f5f5f5; color: #222; }
+
+    header {
+      background: #c0392b; color: white;
+      padding: 16px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    header h1 { font-size: 20px; }
+    .back-btn {
+      font-size: 13px; color: white; text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.5); padding: 6px 14px;
+      border-radius: 20px;
+    }
+    .back-btn:hover { background: rgba(255,255,255,0.15); }
+
+    .summary-bar {
+      display: flex; gap: 12px; padding: 16px 24px;
+      background: white; border-bottom: 1px solid #eee;
+      flex-wrap: wrap;
+    }
+    .summary-card {
+      background: #f5f5f5; border-radius: 10px;
+      padding: 10px 18px; text-align: center;
+    }
+    .summary-card .label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.06em; }
+    .summary-card .value { font-size: 20px; font-weight: 600; color: #222; margin-top: 2px; }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+
+    .category-section { margin-bottom: 24px; }
+    .category-title {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #999; margin-bottom: 10px;
+    }
+
+    .item-card {
+      background: white; border-radius: 12px;
+      border: 1px solid #eee; padding: 14px 18px;
+      margin-bottom: 8px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .item-name { font-size: 14px; font-weight: 500; color: #222; margin-bottom: 3px; }
+    .item-revenue { font-size: 12px; color: #999; }
+    .item-right { text-align: right; }
+    .item-qty { font-size: 22px; font-weight: 600; color: #c0392b; }
+    .item-qty-label { font-size: 11px; color: #999; }
+
+    .bar-wrap { flex: 1; margin: 0 16px; }
+    .bar-track { height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; background: #c0392b; border-radius: 3px; }
+
+    .empty { text-align: center; padding: 60px 20px; color: #999; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Sales Summary</h1>
+  <a href="/" class="back-btn">← Back to POS</a>
+</header>
+
+<div class="summary-bar" id="summary-bar"></div>
+
+<div class="container" id="container"></div>
+
+<script>
+  async function loadSummary() {
+    const res = await fetch("/sales/summary");
+    const items = await res.json();
+
+    if (items.length === 0) {
+      document.getElementById("container").innerHTML = `<div class="empty">No sales data yet.</div>`;
+      return;
+    }
+
+    const totalUnits = items.reduce((sum, i) => sum + i.quantity, 0);
+    const totalRevenue = items.reduce((sum, i) => sum + i.revenue, 0);
+    const topItem = items[0];
+    const maxQty = Math.max(...items.map(i => i.quantity));
+
+    document.getElementById("summary-bar").innerHTML = `
+      <div class="summary-card">
+        <div class="label">Total Items Sold</div>
+        <div class="value">${totalUnits}</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Total Revenue</div>
+        <div class="value">$${totalRevenue.toFixed(2)}</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Top Item</div>
+        <div class="value" style="font-size:14px;">${topItem.name}</div>
+      </div>
+    `;
+
+    const menuRes = await fetch("/menu");
+    const menu = await menuRes.json();
+    const categoryMap = {};
+    menu.forEach(m => { categoryMap[m.name] = m.category; });
+
+    const grouped = {};
+    items.forEach(item => {
+      const cat = categoryMap[item.name] || "other";
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(item);
+    });
+
+    document.getElementById("container").innerHTML = Object.entries(grouped).map(([cat, catItems]) => `
+      <div class="category-section">
+        <div class="category-title">${cat}</div>
+        ${catItems.map(item => `
+          <div class="item-card">
+            <div>
+              <div class="item-name">${item.name}</div>
+              <div class="item-revenue">$${item.revenue.toFixed(2)} revenue</div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-track">
+                <div class="bar-fill" style="width:${Math.round((item.quantity / maxQty) * 100)}%"></div>
+              </div>
+            </div>
+            <div class="item-right">
+              <div class="item-qty">${item.quantity}</div>
+              <div class="item-qty-label">sold</div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `).join("");
+  }
+
+  loadSummary();
+</script>
+
+</body>
+</html>
