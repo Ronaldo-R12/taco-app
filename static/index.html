@@ -153,6 +153,7 @@
       <div class="cash-input" id="split-input">
         <input type="number" id="split-cash" placeholder="Cash portion($)" oninput="updateSplit()"/>
       </div>
+      <div class="change-due" id="change-due"></div>
       <div class="change-due" id="split-remaining"></div>
 
       <div class="zelle-qr" id="zelle-qr">
@@ -339,22 +340,7 @@ function renderMenu() {
     }
   }
 
-  async function submitOrder() {
-    const items = Object.entries(order).map(([name, { qty }]) => ({ name, quantity: qty }));
-    const cash = parseFloat(document.getElementById("cash-received").value) || 0;
-
-    const res = await fetch("/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, payment_method: paymentMethod, cash_received: cash })
-    });
-
-    const data = await res.json();
-    if (data.order_id) {
-      showToast(`Order #${data.order_id} complete! Change: $${data.change_due.toFixed(2)}`);
-      clearOrder();
-    }
-  }
+  
 
   function clearOrder() {
     order = {};
