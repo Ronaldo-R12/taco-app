@@ -1,3 +1,5 @@
+from datetime import datetime
+import zoneinfo
 from models import MenuItem
 from dotenv import load_dotenv
 import os
@@ -25,7 +27,8 @@ class Order:
         self.items: list[OrderItem] = []
         self.payment_method: str = ""
         self.cash_received: float = 0.0
-        self.created_at: str = datetime.now().strftime("%b %d, %Y %I:%M %p")
+        tz = zoneinfo.ZoneInfo("America/Los_Angeles")
+        self.created_at: str = datetime.now(tz).strftime("%b %d, %Y %I:%M %p")
 
     def add_item(self, menu_item: MenuItem, quantity: int):
         for order_item in self.items:
