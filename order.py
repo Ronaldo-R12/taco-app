@@ -1,13 +1,14 @@
-from datetime import datetime
-import zoneinfo
+from datetime import datetime, timezone, timedelta
 from models import MenuItem
 from dotenv import load_dotenv
 import os
 import json
 from datetime import datetime
 
+
 load_dotenv()
 TAX_RATE = float(os.getenv("TAX_RATE", 0.0))
+PACIFIC = timezone(timedelta(hours=-7))
 
 class OrderItem:
     def __init__(self, menu_item: MenuItem, quantity: int):
@@ -27,8 +28,7 @@ class Order:
         self.items: list[OrderItem] = []
         self.payment_method: str = ""
         self.cash_received: float = 0.0
-        tz = zoneinfo.ZoneInfo("America/Los_Angeles")
-        self.created_at: str = datetime.now(tz).strftime("%b %d, %Y %I:%M %p")
+        self.created_at: str = datetime.now(PACIFIC).strftime("%b %d, %Y %I:%M %p")
 
     def add_item(self, menu_item: MenuItem, quantity: int):
         for order_item in self.items:
