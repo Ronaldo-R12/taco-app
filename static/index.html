@@ -310,6 +310,8 @@ function renderMenu() {
     }
   }
   async function submitOrder() {
+    alert("Submit called. Items: " + JSON.stringify(Object.keys(order)));
+
     const items = Object.entries(order).map(([name, { qty }]) => ({ name, quantity: qty }));
     let cash = 0;
     if (paymentMethod === "cash") {
