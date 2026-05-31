@@ -144,12 +144,16 @@
       <div class="payment-btns">
         <button class="pay-btn" id="btn-cash" onclick="selectPayment('cash')">Cash</button>
         <button class="pay-btn" id="btn-zelle" onclick="selectPayment('zelle')">Zelle</button>
+        <button class="pay-btn" id="btn-split" onclick="selectPayment('split')">Split</button>
       </div>
 
       <div class="cash-input" id="cash-input">
         <input type="number" id="cash-received" placeholder="Cash received ($)" oninput="updateChange()" />
       </div>
-      <div class="change-due" id="change-due"></div>
+      <div class="cash-input" id="split-input">
+        <input type="number" id="split-cash" placeholder="Cash portion($)" oninput="updateSplit()"/>
+      </div>
+      <div class="change-due" id="split-remaining"></div>
 
       <div class="zelle-qr" id="zelle-qr">
         <p>Scan to pay with Zelle</p>
@@ -275,12 +279,54 @@ function renderMenu() {
     paymentMethod = method;
     document.getElementById("btn-cash").classList.toggle("selected", method === "cash");
     document.getElementById("btn-zelle").classList.toggle("selected", method === "zelle");
+    document.getElementById("btn-split").classList.toggle("selected", method === "split");
     document.getElementById("cash-input").style.display = method === "cash" ? "block" : "none";
+    document.getElementById("split-input").style.display = method === "split" ? "block" : "none";
     document.getElementById("change-due").style.display = "none";
+    document.getElementById("split-remaining").style.display = "none";
     document.getElementById("zelle-qr").style.display = method === "zelle" ? "block" : "none";
     document.getElementById("charge-btn").disabled = Object.keys(order).length === 0;
   }
+  function updateSplit() {
+    const total = Object.entries(order).reduce((sum, [, { price, qty }]) => sum + price * qty, 0);
+    const cash = parseFloat(document.getElementById("split-cash").value) || 0;
+    const remaining = total - cash;
+    const el = document.getElementById("split-remaining");
+    const qr = document.getElementById("zelle-qr");
+    if (cash > 0) {
+      el.style.display = "block";
+      if (remaining > 0) {
+        el.textContent = `Zelle portion: $${remaining.toFixed(2)}`;
+        el.style.color = "#1565c0";
+        qr.style.display = "block";
+      } else {
+        el.textContent = `Change due: $${Math.abs(remaining).toFixed(2)}`;
+        el.style.color = "#27ae60";
+        qr.style.display = "none";
+      }
+    }
+  }
+  async function submitOrder() {
+    const items = Object.entries(order).map(([name, { qty }]) => ({ name, quantity: qty }));
+    let cash = 0;
+    if (paymentMethod === "cash") {
+      cash = parseFloat(document.getElementById("cash-received").value) || 0;
+    } else if (paymentMethod === "split") {
+      cash = parseFloat(document.getElementById("split-cash").value) || 0;
+    }
 
+    const res = await fetch("/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items, payment_method: paymentMethod, cash_received: cash })
+    });
+
+    const data = await res.json();
+    if (data.order_id) {
+      showToast(`Order #${data.order_id} complete!`);
+      clearOrder();
+    }
+  }
   function updateChange() {
     const total = Object.entries(order).reduce((sum, [, { price, qty }]) => sum + price * qty, 0);
     const cash = parseFloat(document.getElementById("cash-received").value) || 0;
@@ -315,10 +361,14 @@ function renderMenu() {
     paymentMethod = "";
     document.getElementById("btn-cash").classList.remove("selected");
     document.getElementById("btn-zelle").classList.remove("selected");
+    document.getElementById("btn-split").classList.remove("selected");
     document.getElementById("cash-input").style.display = "none";
+    document.getElementById("split-input").style.display = "none";
     document.getElementById("change-due").style.display = "none";
+    document.getElementById("split-remaining").style.display = "none";
     document.getElementById("zelle-qr").style.display = "none";
     document.getElementById("cash-received").value = "";
+    document.getElementById("split-cash").value = "";
     renderOrder();
   }
 
