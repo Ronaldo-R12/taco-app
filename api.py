@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi import FastAPI, Depends
@@ -153,35 +154,37 @@ def get_sales_summary(db: Session = Depends(get_db)):
         for name, data in sorted(summary.items(), key=lambda x: x[1]["quantity"], reverse=True)
     ]
 @app.get("/revenue/summary")
+@app.get("/revenue/summary")
 def get_revenue_summary(db: Session = Depends(get_db)):
     orders = db.query(OrderDB).all()
 
     total_revenue = 0
-    weekly_summary = {}
+    weekend_summary = {}
 
     for order in orders:
         total_revenue += order.total
 
         order_date = datetime.strptime(order.created_at, "%b %d, %Y %I:%M %p")
 
-        week_start = order_date.date()
-        week_start = week_start.replace(day=week_start.day - order_date.weekday())
+        days_since_friday = (order_date.weekday() - 4) % 7
+        weekend_start = order_date.date() - timedelta(days=days_since_friday)
+        weekend_end = weekend_start + timedelta(days=2)
 
-        week_key = week_start.strftime("%Y-%m-%d")
+        period_key = f"{weekend_start.strftime('%b')} {weekend_start.day} - {weekend_end.strftime('%b')} {weekend_end.day}"
 
-        if week_key not in weekly_summary:
-            weekly_summary[week_key] = 0
+        if period_key not in weekend_summary:
+            weekend_summary[period_key] = 0
 
-        weekly_summary[week_key] += order.total
+        weekend_summary[period_key] += order.total
 
     return {
         "total_revenue": round(total_revenue, 2),
         "weekly_revenue": [
             {
-                "week_start": week,
+                "week_start": period,
                 "weekly_total": round(total, 2)
             }
-            for week, total in sorted(weekly_summary.items())
+            for period, total in weekend_summary.items()
         ]
     }
 @app.get("/sales")
