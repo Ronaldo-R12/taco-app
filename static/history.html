@@ -108,28 +108,74 @@
       return;
     }
 
-    const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
-    const cashOrders = orders.filter(o => o.payment_method === "cash").length;
-    const zelleOrders = orders.filter(o => o.payment_method === "zelle").length;
+    function getWeekendRange(date) {
+        const d = new Date(date);
+        const day = d.getDay(); // Sunday = 0, Friday = 5, Saturday = 6
 
-    document.getElementById("summary-bar").innerHTML = `
-      <div class="summary-card">
-        <div class="label">Total Orders</div>
-        <div class="value">${orders.length}</div>
-      </div>
-      <div class="summary-card">
-        <div class="label">Total Revenue</div>
-        <div class="value">$${totalRevenue.toFixed(2)}</div>
-      </div>
-      <div class="summary-card">
-        <div class="label">Cash</div>
-        <div class="value">${cashOrders}</div>
-      </div>
-      <div class="summary-card">
-        <div class="label">Zelle</div>
-        <div class="value">${zelleOrders}</div>
-      </div>
-    `;
+        let friday = new Date(d);
+
+        if (day === 5) {
+            friday.setDate(d.getDate());
+        } else if (day === 6) {
+            friday.setDate(d.getDate() - 1);
+        } else if (day === 0) {
+            friday.setDate(d.getDate() - 2);
+        } else {
+            friday.setDate(d.getDate() - ((day + 2) % 7));
+        }
+
+        const sunday = new Date(friday);
+        sunday.setDate(friday.getDate() + 2);
+
+        return { friday, sunday };
+        }
+
+        function sameDay(a, b) {
+        return a.getFullYear() === b.getFullYear() &&
+                a.getMonth() === b.getMonth() &&
+                a.getDate() === b.getDate();
+        }
+
+        const today = new Date();
+        const { friday, sunday } = getWeekendRange(today);
+
+        const weekendOrders = orders.filter(o => {
+        const orderDate = new Date(o.created_at);
+        return orderDate >= friday && orderDate <= new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate(), 23, 59, 59);
+        });
+
+        const weekendRevenue = weekendOrders.reduce((sum, o) => sum + o.total, 0);
+        const weekendCashRevenue = weekendOrders
+        .filter(o => o.payment_method === "cash")
+        .reduce((sum, o) => sum + o.total, 0);
+        const weekendZelleRevenue = weekendOrders
+        .filter(o => o.payment_method === "zelle")
+        .reduce((sum, o) => sum + o.total, 0);
+
+        const weekendLabel = `${friday.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${sunday.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+
+        document.getElementById("summary-bar").innerHTML = `
+        <div class="summary-card">
+            <div class="label">Weekend</div>
+            <div class="value" style="font-size:16px;">${weekendLabel}</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Weekend Orders</div>
+            <div class="value">${weekendOrders.length}</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Weekend Revenue</div>
+            <div class="value">$${weekendRevenue.toFixed(2)}</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Cash Sales</div>
+            <div class="value">$${weekendCashRevenue.toFixed(2)}</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Zelle Sales</div>
+            <div class="value">$${weekendZelleRevenue.toFixed(2)}</div>
+        </div>
+        `;
 
     const grouped = {};
     orders.forEach(o => {
