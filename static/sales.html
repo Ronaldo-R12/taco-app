@@ -79,9 +79,36 @@
 </header>
 
 <div class="summary-bar" id="summary-bar"></div>
+
+<div class="container">
+  <div class="category-section">
+    <div class="category-title">Weekly Revenue</div>
+    <div id="weekly-revenue"></div>
+  </div>
+</div>
+
 <div class="container" id="container"></div>
 
 <script>
+  async function loadRevenueSummary() {
+  const response = await fetch("/revenue/summary");
+  const data = await response.json();
+
+  const weeklyDiv = document.getElementById("weekly-revenue");
+
+  weeklyDiv.innerHTML = data.weekly_revenue.map(week => `
+    <div class="item-card">
+      <div>
+        <div class="item-name">Week of ${week.week_start}</div>
+        <div class="item-revenue">Weekly total revenue</div>
+      </div>
+      <div class="item-right">
+        <div class="item-qty">$${week.weekly_total.toFixed(2)}</div>
+        <div class="item-qty-label">revenue</div>
+      </div>
+    </div>
+  `).join("");
+}  
   async function loadSummary() {
     const [summaryRes, menuRes] = await Promise.all([
       fetch("/sales/summary"),
@@ -153,6 +180,7 @@
   }
 
   loadSummary();
+  loadRevenueSummary();
 </script>
 
 </body>

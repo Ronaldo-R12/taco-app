@@ -152,7 +152,38 @@ def get_sales_summary(db: Session = Depends(get_db)):
         {"name": name, "quantity": data["quantity"], "revenue": round(data["revenue"], 2)}
         for name, data in sorted(summary.items(), key=lambda x: x[1]["quantity"], reverse=True)
     ]
+@app.get("/revenue/summary")
+def get_revenue_summary(db: Session = Depends(get_db)):
+    orders = db.query(OrderDB).all()
 
+    total_revenue = 0
+    weekly_summary = {}
+
+    for order in orders:
+        total_revenue += order.total
+
+        order_date = datetime.strptime(order.created_at, "%b %d, %Y %I:%M %p")
+
+        week_start = order_date.date()
+        week_start = week_start.replace(day=week_start.day - order_date.weekday())
+
+        week_key = week_start.strftime("%Y-%m-%d")
+
+        if week_key not in weekly_summary:
+            weekly_summary[week_key] = 0
+
+        weekly_summary[week_key] += order.total
+
+    return {
+        "total_revenue": round(total_revenue, 2),
+        "weekly_revenue": [
+            {
+                "week_start": week,
+                "weekly_total": round(total, 2)
+            }
+            for week, total in sorted(weekly_summary.items())
+        ]
+    }
 @app.get("/sales")
 def read_sales():
     return FileResponse("static/sales.html")
