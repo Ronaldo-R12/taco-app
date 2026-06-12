@@ -103,28 +103,36 @@ def read_root():
 @app.get("/orders/history")
 def get_order_history(db: Session = Depends(get_db)):
     orders = db.query(OrderDB).order_by(OrderDB.id.desc()).all()
-    result = []
-    for o in orders:
-        items = db.query(OrderItemDB).filter(OrderItemDB.order_id == o.id).all()
-        result.append({
+    if not orders:
+        return []
+    
+    order_ids = [o.id for o in orders]
+    all_items = db.query(OrderItemDB).filter(OrderItemDB.order_id.in_(order_ids)).all()
+    
+    items_by_order = {}
+    for item in all_items:
+        if item.order_id not in items_by_order:
+            items_by_order[item.order_id] = []
+        items_by_order[item.order_id].append({
+            "name": item.menu_item_name,
+            "price": item.price,
+            "quantity": item.quantity,
+            "line_total": item.line_total
+        })
+    
+    return [
+        {
             "id": o.id,
             "created_at": o.created_at,
-            "items": [
-                {
-                    "name": i.menu_item_name,
-                    "price": i.price,
-                    "quantity": i.quantity,
-                    "line_total": i.line_total
-                }
-                for i in items
-            ],
+            "items": items_by_order.get(o.id, []),
             "subtotal": o.subtotal,
             "total": o.total,
             "payment_method": o.payment_method,
             "cash_received": o.cash_received,
             "change_due": o.change_due
-        })
-    return result
+        }
+        for o in orders
+    ]
 
 @app.get("/history")
 def read_history():
