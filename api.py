@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi import FastAPI, Depends
@@ -65,7 +66,9 @@ def create_order(request: OrderRequest, db: Session = Depends(get_db)):
     order.cash_received = request.cash_received
 
     db_order = OrderDB(
-        created_at=datetime.now().strftime("%b %d, %Y %I:%M %p"),
+        created_at=datetime.now(
+            ZoneInfo("America/Los Angeles")
+        ).strftime("%b %d, %Y %I:%M %p"),
         subtotal=order.subtotal,
         tax=order.tax,
         total=order.total,
