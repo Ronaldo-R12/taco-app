@@ -153,7 +153,8 @@ def get_sales_summary(db: Session = Depends(get_db)):
         {"name": name, "quantity": data["quantity"], "revenue": round(data["revenue"], 2)}
         for name, data in sorted(summary.items(), key=lambda x: x[1]["quantity"], reverse=True)
     ]
-@app.get("/revenue/summary")
+
+
 @app.get("/revenue/summary")
 def get_revenue_summary(db: Session = Depends(get_db)):
     orders = db.query(OrderDB).all()
@@ -161,9 +162,12 @@ def get_revenue_summary(db: Session = Depends(get_db)):
     total_revenue = 0
     weekend_summary = {}
 
-    for order in orders:
-        total_revenue += order.total
+    category_map = {
+        item.name: item.category
+        for item in db.query(MenuItemDB).all()
+    }
 
+    for order in orders:
         order_date = datetime.strptime(order.created_at, "%b %d, %Y %I:%M %p")
 
         days_since_friday = (order_date.weekday() - 4) % 7
@@ -173,18 +177,36 @@ def get_revenue_summary(db: Session = Depends(get_db)):
         period_key = f"{weekend_start.strftime('%b')} {weekend_start.day} - {weekend_end.strftime('%b')} {weekend_end.day}"
 
         if period_key not in weekend_summary:
-            weekend_summary[period_key] = 0
+            weekend_summary[period_key] = {
+                "total": 0,
+                "food": 0,
+                "drinks": 0
+            }
 
-        weekend_summary[period_key] += order.total
+        order_items = db.query(OrderItemDB).filter(OrderItemDB.order_id == order.id).all()
+
+        for item in order_items:
+            category = category_map.get(item.menu_item_name, "other")
+
+            weekend_summary[period_key]["total"] += item.line_total
+
+            if category == "food":
+                weekend_summary[period_key]["food"] += item.line_total
+            elif category == "drinks":
+                weekend_summary[period_key]["drinks"] += item.line_total
+
+    total_revenue = sum(data["total"] for data in weekend_summary.values())
 
     return {
         "total_revenue": round(total_revenue, 2),
         "weekly_revenue": [
             {
                 "week_start": period,
-                "weekly_total": round(total, 2)
+                "weekly_total": round(data["total"], 2),
+                "food_total": round(data["food"], 2),
+                "drinks_total": round(data["drinks"], 2)
             }
-            for period, total in weekend_summary.items()
+            for period, data in weekend_summary.items()
         ]
     }
 @app.get("/sales")
