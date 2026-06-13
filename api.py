@@ -67,7 +67,7 @@ def create_order(request: OrderRequest, db: Session = Depends(get_db)):
 
     db_order = OrderDB(
         created_at=datetime.now(
-            ZoneInfo("America/Los Angeles")
+            ZoneInfo("America/Los_Angeles")
         ).strftime("%b %d, %Y %I:%M %p"),
         subtotal=order.subtotal,
         tax=order.tax,
