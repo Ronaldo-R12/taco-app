@@ -238,12 +238,15 @@ function renderMenu() {
     document.getElementById("custom-price").value = "";
     renderOrder();
   }
-  function changeQtyByIndex(index, delta) {
-    const key = Object.keys(order)[index];
-    if (!key) return;
-    order[key].qty += delta;
-    if (order[key].qty <= 0) delete order[key];
+  function changeQty(name, delta) {
+    if (!order[name]) return;
+    order[name].qty += delta;
+
+    if (order[name].qty <=0){
+        delete order[name];
+    }
     renderOrder();
+     
   }
 
   function renderOrder() {
