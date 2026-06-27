@@ -30,6 +30,8 @@ class OrderDB(Base):
     payment_method = Column(String(20), nullable=False)
     cash_received = Column(Float, default=0.0)
     change_due = Column(Float, default=0.0)
+    cash_amount = Column(Float, default=0.0)
+    zelle_amount = Column(Float, default=0.0)
 
 
 class OrderItemDB(Base):

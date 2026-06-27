@@ -64,7 +64,16 @@ def create_order(request: OrderRequest, db: Session = Depends(get_db)):
 
     order.payment_method = request.payment_method
     order.cash_received = request.cash_received
+    cash_amount = 0.0
+    zelle_amount = 0.0
 
+    if order.payment_method == "cash":
+        cash_amount = order.total
+    elif order.payment_method == "zelle":
+        zelle_amount = order.total
+    elif order.payment_method == "split":
+        cash_amount = request.cash_received
+        zelle_amount = order.total - request.cash_received
     db_order = OrderDB(
         created_at=datetime.now(
             ZoneInfo("America/Los_Angeles")
@@ -74,7 +83,9 @@ def create_order(request: OrderRequest, db: Session = Depends(get_db)):
         total=order.total,
         payment_method=order.payment_method,
         cash_received=order.cash_received,
-        change_due=order.change_due
+        change_due=order.change_due,
+        cash_amount=cash_amount,
+        zelle_amount=zelle_amount,
     )
     db.add(db_order)
     db.flush()
@@ -133,7 +144,9 @@ def get_order_history(db: Session = Depends(get_db)):
             "total": o.total,
             "payment_method": o.payment_method,
             "cash_received": o.cash_received,
-            "change_due": o.change_due
+            "change_due": o.change_due,
+            "cash_amount": o.cash_amount,
+            "zelle_amount": o.zelle_amount
         }
         for o in orders
     ]
