@@ -173,6 +173,7 @@
   let menu = [];
   let order = {};
   let paymentMethod = "";
+  let isSubmitting = false;
 
   async function loadMenu() {
     const res = await fetch("/menu");
@@ -183,8 +184,8 @@
 function renderMenu() {
     const container = document.getElementById("menu-container");
 
-    const birria = ["Tacos de Birria", "Quesatacos", "Vampiros", "Vaso Grande con Carne", "Vaso Chico con Carne", "Consome (no carne)", "Torta de Birria", "Tostadas"];
-    const asada = ["Tacos de Asada", "Quesatacos", "Vampiros", "Torta de Asada"];
+    const birria = ["Tacos de Birria", "Quesatacos", "Vampiros", "Vaso Grande con Carne", "Vaso Chico con Carne", "Consome (no carne)", "Torta de Birria", "Tostadas", "Burrito de Birria"];
+    const asada = ["Tacos de Asada", "Quesatacos", "Vampiros", "Torta de Asada", "Burrito de Asada"];
     const extras = ["Extra Tortillas", "Extra Tostadas", "Extra Queso"];
 
     const getItem = (name) => menu.find(i => i.name === name);
@@ -312,8 +313,22 @@ function renderMenu() {
       }
     }
   }
-  async function submitOrder() {
-    const items = Object.entries(order).map(([name, { qty, price }]) => ({ name, quantity: qty, price }));
+ async function submitOrder() {
+  if (isSubmitting) return;
+
+  isSubmitting = true;
+
+  const chargeBtn = document.getElementById("charge-btn");
+  chargeBtn.disabled = true;
+  chargeBtn.textContent = "Processing...";
+
+  try {
+    const items = Object.entries(order).map(([name, { qty, price }]) => ({
+      name,
+      quantity: qty,
+      price
+    }));
+
     let cash = 0;
     if (paymentMethod === "cash") {
       cash = parseFloat(document.getElementById("cash-received").value) || 0;
@@ -328,11 +343,17 @@ function renderMenu() {
     });
 
     const data = await res.json();
+
     if (data.order_id) {
       showToast(`Order #${data.order_id} complete!`);
       clearOrder();
     }
+  } finally {
+    isSubmitting = false;
+    chargeBtn.textContent = "Charge";
+    renderOrder();
   }
+}
   function updateChange() {
     const total = Object.entries(order).reduce((sum, [, { price, qty }]) => sum + price * qty, 0);
     const cash = parseFloat(document.getElementById("cash-received").value) || 0;

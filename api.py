@@ -137,7 +137,21 @@ def get_order_history(db: Session = Depends(get_db)):
         }
         for o in orders
     ]
+@app.delete("/orders/{order_id}")
+def delete_order(order_id: int, db: Session = Depends(get_db)):
+    order = db.query(OrderDB).filter(OrderDB.id == order_id).first()
 
+    if not order:
+        return {"error": "Order not found"}
+
+    db.query(OrderItemDB).filter(
+        OrderItemDB.order_id == order_id
+    ).delete()
+
+    db.delete(order)
+    db.commit()
+
+    return {"success": True}
 @app.get("/history")
 def read_history():
     return FileResponse("static/history.html")
