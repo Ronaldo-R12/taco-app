@@ -8,6 +8,7 @@ class MenuItemDB(Base):
     name = Column(String(100), nullable=False)
     price = Column(Float, nullable=False)
     category = Column(String(50), nullable=False)
+    section = Column(String(50))
 
 
 class InventoryDB(Base):
