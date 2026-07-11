@@ -192,7 +192,7 @@
     menu.forEach(item => {
 
     // Shared items
-      if (item.name === "Quesatacos" || item.name === "Vampiros") {
+      if (item.name === "Quesatacos" || item.name === "Vampiros" || item.name=="Tostadas") {
           grouped.birria.push(item);
           grouped.asada.push(item);
           return;
@@ -209,6 +209,9 @@
         { label: "Extras", items: grouped.extras },
         { label: "Drinks", items: grouped.drinks }
     ];
+    sections.forEach(section=>{
+        section.items.sort((a,b) => a.display_order-b.display_order);
+    });
     const container = document.getElementById("menu-container");
     container.innerHTML = "";
 

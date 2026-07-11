@@ -9,6 +9,7 @@ class MenuItemDB(Base):
     price = Column(Float, nullable=False)
     category = Column(String(50), nullable=False)
     section = Column(String(50))
+    display_order= Column(Integer)
 
 
 class InventoryDB(Base):

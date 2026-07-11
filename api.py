@@ -19,9 +19,12 @@ class OrderRequest(BaseModel):
 
 @app.get("/menu")
 def get_menu(db: Session = Depends(get_db)):
-    items = db.query(MenuItemDB).all()
+    items = db.query(MenuItemDB).order_by(
+        MenuItemDB.section, 
+        MenuItemDB.display_order).all()
+    
     return [
-        {"id": item.id, "name": item.name, "price": float(item.price), "category": item.category, "section":item.section}
+        {"id": item.id, "name": item.name, "price": float(item.price), "category": item.category, "section":item.section, "display_order":item.display_order}
         for item in items
     ]
 
