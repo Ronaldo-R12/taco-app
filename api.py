@@ -21,7 +21,7 @@ class OrderRequest(BaseModel):
 def get_menu(db: Session = Depends(get_db)):
     items = db.query(MenuItemDB).all()
     return [
-        {"id": item.id, "name": item.name, "price": item.price, "category": item.category}
+        {"id": item.id, "name": item.name, "price": float(item.price), "category": item.category, "section":item.section}
         for item in items
     ]
 

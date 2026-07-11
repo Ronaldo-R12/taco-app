@@ -181,37 +181,60 @@
     renderMenu();
   }
 
-function renderMenu() {
-    const container = document.getElementById("menu-container");
+  function renderMenu() {
+    const grouped = {
+      birria: [],
+      asada: [],
+      extras: [],
+      drinks: []
+    };
 
-    const birria = ["Tacos de Birria", "Quesatacos", "Vampiros", "Vaso Grande con Carne", "Vaso Chico con Carne", "Consome (no carne)", "Torta de Birria", "Tostadas", "Burrito de Birria"];
-    const asada = ["Tacos de Asada", "Quesatacos", "Vampiros", "Torta de Asada", "Burrito de Asada"];
-    const extras = ["Extra Tortillas", "Extra Tostadas", "Extra Queso"];
+    menu.forEach(item => {
 
-    const getItem = (name) => menu.find(i => i.name === name);
+    // Shared items
+      if (item.name === "Quesatacos" || item.name === "Vampiros") {
+          grouped.birria.push(item);
+          grouped.asada.push(item);
+          return;
+      }
+
+      if (grouped[item.section]) {
+          grouped[item.section].push(item);
+      }
+    });
 
     const sections = [
-      { label: "Birria", names: birria },
-      { label: "Asada", names: asada },
-      { label: "Extras", names: extras },
-      { label: "Drinks", names: menu.filter(i => i.category === "drinks").map(i => i.name) }
+        { label: "Birria", items: grouped.birria },
+        { label: "Asada", items: grouped.asada },
+        { label: "Extras", items: grouped.extras },
+        { label: "Drinks", items: grouped.drinks }
     ];
-
+    const container = document.getElementById("menu-container");
     container.innerHTML = "";
-    sections.forEach(({ label, names }) => {
-      const items = names.map(getItem).filter(Boolean);
-      if (items.length === 0) return;
-      const section = document.createElement("div");
-      section.className = "category";
-      section.innerHTML = `<h3>${label}</h3><div class="items-grid">${
-        items.map(item => `
-          <button class="menu-btn" onclick="addItem('${item.name}', ${item.price})">
-            <div class="item-name">${item.name}</div>
-            <div class="item-price">$${item.price.toFixed(2)}</div>
-          </button>`).join("")
-      }</div>`;
-      container.appendChild(section);
+
+    sections.forEach(({ label, items }) => {
+
+        if (items.length === 0) return;
+
+        const section = document.createElement("div");
+        section.className = "category";
+
+        section.innerHTML = `
+            <h3>${label}</h3>
+            <div class="items-grid">
+                ${items.map(item => `
+                    <button class="menu-btn"
+                        onclick="addItem('${item.name}', ${item.price})">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-price">$${Number(item.price).toFixed(2)}</div>
+                    </button>
+                `).join("")}
+            </div>
+        `;
+
+        container.appendChild(section);
     });
+
   }
 
   function addItem(name, price) {
