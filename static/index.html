@@ -186,7 +186,9 @@
       birria: [],
       asada: [],
       extras: [],
-      drinks: []
+      drinks: [],
+      chips: [],
+      snacks: []
     };
 
     menu.forEach(item => {
@@ -207,7 +209,9 @@
         { label: "Birria", items: grouped.birria },
         { label: "Asada", items: grouped.asada },
         { label: "Extras", items: grouped.extras },
-        { label: "Drinks", items: grouped.drinks }
+        { label: "Drinks", items: grouped.drinks },
+        { label: "Chips", items: grouped.chips },
+        { label: "Snacks", items: grouped.snacks }
     ];
     sections.forEach(section=>{
         section.items.sort((a,b) => a.display_order-b.display_order);
